@@ -15,7 +15,8 @@ class Lane:
 
 def devinit():
     """Prepare for development"""
-    ...
+    # TODO check venv ($VIRTUAL_ENV)
+    # TODO check dependencies
 
 
 def init():
