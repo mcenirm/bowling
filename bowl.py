@@ -5,7 +5,12 @@ import sys
 import textwrap
 import typing
 
-import rich
+# TODO maybe remove rich import?
+try:
+    import rich
+except ImportError:
+    rich = type("", (), {})()
+    rich.print = print
 
 
 class Alley:
