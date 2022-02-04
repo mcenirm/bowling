@@ -1,4 +1,5 @@
 import argparse
+import inspect
 import sys
 import textwrap
 import typing
@@ -109,19 +110,30 @@ def test_build_tree():
 
 def description_and_parameters_from_function(func: typing.Callable) -> tuple[str, list]:
     lines = textwrap.dedent(func.__doc__).splitlines()
-    return lines[0], []
+    spec = inspect.getfullargspec(func)
+    return lines[0], [[_] for _ in spec.args]
 
 
 def test_description_and_parameters_from_function():
     """TODO test functions with parameters"""
     import pytest
 
-    def no_parameters():
+    def function_without_parameters():
         """This function has no parameters"""
 
-    d, p = description_and_parameters_from_function(no_parameters)
-    assert d == no_parameters.__doc__
+    d, p = description_and_parameters_from_function(function_without_parameters)
+    assert d == function_without_parameters.__doc__
     assert p == []
+
+    def function_with_parameters_but_no_details(a, b, c):
+        """This function has parameters but does not explain them"""
+        ...
+
+    d, p = description_and_parameters_from_function(
+        function_with_parameters_but_no_details
+    )
+    assert d == function_with_parameters_but_no_details.__doc__
+    assert p == [[_] for _ in "abc"]
 
 
 def parse_args(args: list[str] = sys.argv[1:]):
