@@ -108,8 +108,8 @@ def build_arg_parser(
                 func = func_or_subtree
                 desc, params = description_and_parameters_from_function(func)
                 p = subparsers.add_parser(name, description=desc)
-                for args, kwargs in params:
-                    p.add_argument(*args, **kwargs)
+                for param in params:
+                    p.add_argument(*param.name_or_flags, **param.kwargs)
 
     if prog == "__main__":
         prog = sys.argv[0]
@@ -177,11 +177,6 @@ def description_and_parameters_from_function(
 
 
 def test_description_and_parameters_from_function():
-    """TODO
-    [x] no parameters
-    [x] parameters but no descriptions
-    [x] parameters with descriptions
-    [ ] parameters as typed objects"""
     import pytest
 
     def function_without_parameters():
