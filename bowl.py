@@ -136,7 +136,11 @@ def build_arg_parser(
 ) -> argparse.ArgumentParser:
     def add(parser: argparse.ArgumentParser, tree: dict, /) -> None:
         """Recursively add subcommands to a parser"""
-        subparsers = parser.add_subparsers(dest="COMMAND", required=True)
+        subparsers = parser.add_subparsers(
+            title="subcommands",
+            dest="COMMAND",
+            required=True,
+        )
         for name, func_or_subtree in tree.items():
             if isinstance(func_or_subtree, dict):
                 subtree = func_or_subtree
@@ -145,6 +149,7 @@ def build_arg_parser(
                 func = func_or_subtree
                 desc, params = description_and_parameters_from_function(func)
                 p = subparsers.add_parser(name, description=desc)
+                p.set_defaults(func=func)
                 for param in params:
                     p.add_argument(*param.name_or_flags, **param.kwargs)
 
@@ -153,6 +158,28 @@ def build_arg_parser(
     parser = argparse.ArgumentParser(prog=prog)
     add(parser, build_tree(subcommands, lambda f: f.__name__.split("_")))
     return parser
+
+
+def test_build_arg_parser():
+    def one():
+        ...
+
+    def two_a(a: str, b: int, c: list = []) -> None:
+        """help for two a
+
+        a: x
+        b: y
+        c: z"""
+
+    def two_b():
+        ...
+
+    p = build_arg_parser(subcommands=[one, two_a, two_b])
+    assert "{one,two}" in p.format_usage()
+    assert p.parse_args(["one"]) == argparse.Namespace(COMMAND="one", func=one)
+    assert p.parse_args("two a 1 2 3".split()) == argparse.Namespace(
+        COMMAND="a", a="1", b="2", c="3", func=two_a
+    )
 
 
 def build_tree(
@@ -290,10 +317,23 @@ def parse_args(args: list[str] = sys.argv[1:]):
 
 
 def run_args(args):
-    rich.print(args)
-    func = globals().get(args.COMMAND, None)
-    rich.print(func)
-    # TODO call function using proper arguments
+    kwargs = dict(vars(args))
+    del kwargs["COMMAND"]
+    del kwargs["func"]
+    args.func(**kwargs)
+
+
+def test_run_args():
+    def make_f(results: list) -> typing.Callable:
+        def f(a, *args, **kwargs):
+            results.extend((a, args, kwargs))
+
+        return f
+
+    results = []
+    f = make_f(results)
+    run_args(argparse.Namespace(COMMAND="f", func=f, a="1", b="2"))
+    assert results == ["1", (), {"b": "2"}]
 
 
 def main():
