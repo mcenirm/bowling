@@ -39,8 +39,43 @@ def bowl():
 
 def dev_init():
     """Prepare for development"""
-    # TODO check venv ($VIRTUAL_ENV)
+    if not is_in_venv():
+        # TODO maybe check if venv exists, but is not activated?
+        venv_path = pathlib.Path(__file__).parent / "venv"
+        hr = "-" * 40
+        print(hr, file=sys.stderr)
+        venv.create(venv_path, with_pip=True, upgrade_deps=True)
+        print(hr, file=sys.stderr)
+        lines = [
+            "Created a new virtual environment at: {path}",
+            "",
+            *textwrap.wrap(
+                "Activate the virtual environment using the appropriate"
+                " command for your shell, then try again:"
+            ),
+            "",
+        ]
+        if os.name == "posix":
+            lines.extend(
+                [
+                    "  bash/zsh         |  source {path}/bin/activate",
+                    "  fish             |  source {path}/bin/activate.fish",
+                    "  csh/tcsh         |  source {path}/bin/activate.csh",
+                    "  PowerShell Core  |  {path}/bin/Activate.ps1",
+                ]
+            )
+        elif os.name == "nt":
+            lines.extend(
+                [
+                    r"  cmd.exe     |  {path}\Scripts\activate.bat",
+                    r"  PowerShell  |  {path}\Scripts\Activate.ps1",
+                ]
+            )
+        msg = "\n".join(lines).format(path=str(venv_path))
+        print(msg, file=sys.stderr)
+        print(hr, file=sys.stderr)
     # TODO check dependencies
+    raise NotImplementedError()
 
 
 def dev_pytest():
