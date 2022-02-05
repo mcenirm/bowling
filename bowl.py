@@ -1,9 +1,12 @@
 import argparse
 import dataclasses
 import inspect
+import os
+import pathlib
 import sys
 import textwrap
 import typing
+import venv
 
 # TODO maybe remove rich import?
 try:
@@ -43,6 +46,35 @@ def dev_init():
 def dev_pytest():
     """TODO Run tests"""
     ...
+
+
+# endregion
+
+
+# region development support
+
+
+def is_in_venv(environ=os.environ) -> bool:
+    venv_location = environ.get("VIRTUAL_ENV", None)
+    if not venv_location:
+        return False
+    return (pathlib.Path(venv_location) / "pyvenv.cfg").exists()
+
+
+def test_is_in_venv(tmp_path: pathlib.Path):
+    def is_in_venv_with_environ(environ: dict) -> bool:
+        return is_in_venv(environ=environ)
+
+    assert not is_in_venv_with_environ({})
+    tmp_venv_path = tmp_path / "venv"
+    if tmp_venv_path.exists():
+        import shutil
+
+        shutil.rmtree(tmp_venv_path)
+    tmp_environ = dict(VIRTUAL_ENV=str(tmp_venv_path))
+    assert not is_in_venv_with_environ(tmp_environ)
+    venv.create(tmp_venv_path)
+    assert is_in_venv_with_environ(tmp_environ)
 
 
 # endregion
