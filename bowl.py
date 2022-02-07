@@ -86,7 +86,7 @@ def dev_init():
 
 
 def dev_pytest():
-    subprocess.check_call("pytest", __file__)
+    subprocess.check_call(["pytest", __file__])
 
 
 # endregion
