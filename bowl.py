@@ -3,6 +3,7 @@ import dataclasses
 import inspect
 import os
 import pathlib
+import subprocess
 import sys
 import textwrap
 import typing
@@ -74,13 +75,18 @@ def dev_init():
         msg = "\n".join(lines).format(path=str(venv_path))
         print(msg, file=sys.stderr)
         print(hr, file=sys.stderr)
-    # TODO check dependencies
-    raise NotImplementedError()
+    else:
+        pipcmd = [sys.executable, "-m", "pip", "install"]
+        pipcmd += [
+            "icecream",
+            "pytest",
+            "rich",
+        ]
+        subprocess.check_call(pipcmd)
 
 
 def dev_pytest():
-    """TODO Run tests"""
-    ...
+    subprocess.check_call("pytest", __file__)
 
 
 # endregion
